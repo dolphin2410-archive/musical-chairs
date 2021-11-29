@@ -13,4 +13,16 @@ repositories {
 dependencies {
     implementation(kotlin("stdlib"))
     compileOnly("io.papermc.paper:paper-api:1.17.1-R0.1-SNAPSHOT")
+    compileOnly("io.github.monun:kommand-api:2.6.6")
+    compileOnly("io.github.teamcheeze:plum:0.0.13")
+}
+
+tasks {
+    jar {
+        archiveFileName.set(File(project.rootDir, "server/plugins/musical.jar").toString())
+    }
+}
+
+java {
+    toolchain.languageVersion.set(JavaLanguageVersion.of(16))
 }
