@@ -50,15 +50,15 @@ class MusicalChairPlugin: JavaPlugin() {
                 }
 
                 then("addPlayer") {
-                    then("player" to player()) {
+                    then("playerArg" to player()) {
                         executes {
-                            val player: Player by it
+                            val playerArg: Player by it
 
                             val data = map[player.uniqueId]
                             if (data == null) {
-                                player.sendMessage("No Game")
+                                playerArg.sendMessage("No Game")
                             } else {
-                                data.addPlayer(player.uniqueId)
+                                data.addPlayer(playerArg.uniqueId)
                             }
                         }
                     }

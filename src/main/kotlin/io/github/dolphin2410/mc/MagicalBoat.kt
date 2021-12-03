@@ -1,8 +1,8 @@
 package io.github.dolphin2410.mc
 
-import io.github.dolphin2410.mc.util.ObservableProperty
-import io.github.dolphin2410.mc.util.Property
 import io.github.teamcheeze.plum.api.core.events.EventRegistry
+import net.kyori.adventure.text.Component.text
+import org.bukkit.Bukkit
 import org.bukkit.entity.Boat
 import org.bukkit.entity.Player
 import org.bukkit.event.vehicle.VehicleExitEvent
@@ -20,7 +20,9 @@ data class MagicalBoat(val bukkit: Boat, val parent: BoatList) {
     }
 
     private val onMove = EventRegistry.register<VehicleMoveEvent> { e ->
-        if (e.vehicle == bukkit) bukkit.teleport(e.from)
+        if (!parent.movable && e.vehicle == bukkit) {
+            bukkit.teleport(e.from)
+        }
     }
 
     private val onEject = EventRegistry.register<VehicleExitEvent> { e ->

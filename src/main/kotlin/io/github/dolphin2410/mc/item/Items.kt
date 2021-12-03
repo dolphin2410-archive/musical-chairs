@@ -9,7 +9,7 @@ object Items {
     val specialBoat = ItemStack(Material.OAK_BOAT).apply {
         itemMeta = itemMeta.apply {
             displayName(text("Magical Boat"))
-            addEnchantment(Enchantment.LUCK, 1)
+            addEnchant(Enchantment.LUCK, 1, false)
         }
     }
 }

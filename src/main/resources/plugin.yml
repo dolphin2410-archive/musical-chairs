@@ -6,3 +6,4 @@ author: dolphin2410
 libraries:
   - io.github.monun:kommand:2.6.6
   - io.github.teamcheeze:plum:0.0.13
+  - io.github.teamcheeze:jaw:1.0.4

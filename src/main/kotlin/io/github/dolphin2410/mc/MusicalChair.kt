@@ -22,7 +22,7 @@ import kotlin.properties.Delegates
 class MusicalChair {
     lateinit var center: Location
 
-    var radius by Delegates.notNull<Int>()
+    var radius = 4
 
     private val players = ArrayList<UUID>()
 
@@ -32,20 +32,22 @@ class MusicalChair {
 
     private var rounds by Delegates.notNull<Int>()
 
-    var soundName: String = "AMBIENT_CAVE"
+    var soundName = Sound.AMBIENT_CAVE
 
     var min = 2
     var max = 15
 
     private val onQuit = EventRegistry.register<PlayerQuitEvent> { e ->
-        if (players.contains(e.player.uniqueId)) {
-            players.remove(e.player.uniqueId)
-            endGameReason(Reason.PLAYER_QUIT)
+        players.remove(e.player.uniqueId)
+        if (valid) {
+            if (players.contains(e.player.uniqueId)) {
+                endGameReason(Reason.PLAYER_QUIT)
+            }
         }
     }
 
     init {
-        boats.onAllSit(object: PropertyObserver<ArrayList<Pair<MagicalBoat, UUID>>> {
+        boats.onAllSit(object : PropertyObserver<ArrayList<Pair<MagicalBoat, UUID>>> {
             override fun accept(t: ArrayList<Pair<MagicalBoat, UUID>>) {
                 val iter = players.iterator()
                 while (iter.hasNext()) {
@@ -67,11 +69,13 @@ class MusicalChair {
         valid = true
         removeChair()
         rounds = players.size - 1
+        relocateChairs()
+        startMusic()
     }
 
     fun countdown(num: Int) {
         var index = 0
-        object: BukkitRunnable() {
+        object : BukkitRunnable() {
             override fun run() {
                 players.forEach { uuid ->
                     Bukkit.getPlayer(uuid)!!.showTitle(title(text(num - index++), text("")))
@@ -86,20 +90,21 @@ class MusicalChair {
 
     fun startMusic() {
         // START MUSIC
-        boats.disableMount()
         boats.enableEject()
+        boats.enableMount()
         boats.ejectAll()
 
         players.forEach {
             Bukkit.getPlayer(it)!!.apply {
                 playSound(this.location, soundName, 1.0F, 1.0F)
+                sendMessage("Music Started")
             }
         }
 
         val time = round(((Math.random() * (max - min)) + min))
 
         // random from 2 ~ 15
-        object: BukkitRunnable() {
+        object : BukkitRunnable() {
             override fun run() {
                 players.forEach {
                     Bukkit.getPlayer(it)!!.showTitle(title(text("STOP!"), text("")))
@@ -111,11 +116,11 @@ class MusicalChair {
 
     fun stopMusic() {
         boats.enableMount()
-        boats.disableEject()
         // STOP MUSIC
         rounds--
         players.forEach {
             Bukkit.getPlayer(it)!!.stopSound(soundName)
+            Bukkit.getPlayer(it)!!.sendMessage("Music Stopped")
         }
         removeChair()
         if (rounds == 0) {
@@ -126,19 +131,29 @@ class MusicalChair {
     }
 
     fun relocateChairs() {
-        if (::center.isInitialized) {
-            boats.forEachIndexed { index, it ->
-                val angle = index * 360 / boats.size
+        boats.enableMove()
 
-                val x = sin(angle * Math.PI / 180) * radius
-                val z = cos(angle * Math.PI / 180) * radius
+        boats.forEachIndexed { index, it ->
+            Bukkit.broadcast(text("Relocating boat index: $index"))
+            Bukkit.broadcast(text("BoatsSize: ${boats.size}"))
+            Bukkit.broadcast(text("Movable: ${boats.movable}"))
+            val angle = index * 360.0 / boats.size
 
-                it.bukkit.teleport(center.clone().add(x, 0.0, z))
-            }
+            val x = sin(angle * Math.PI / 180.0) * radius
+            val z = cos(angle * Math.PI / 180.0) * radius
+            Bukkit.broadcast(text("DX: $x"))
+            Bukkit.broadcast(text("DZ: $z"))
+
+            it.bukkit.teleport(center.clone().add(x, 0.0, z))
         }
+
+//        boats.disableMove()
     }
 
     fun removeChair() {
+        if (boats.size == 0) {
+            Bukkit.getPlayer(players.first())!!.sendMessage("HEY YOU WIN!")
+        }
         boats.popRemove()
         relocateChairs()
     }
@@ -161,9 +176,20 @@ class MusicalChair {
     }
 
     fun addPlayer(uuid: UUID) {
-        players.add(uuid)
-        boats.add(MagicalBoat(center.world!!.spawn(center.add(0.0, boats.size * 0.5, 0.0), Boat::class.java), boats))
-        if (valid) endGameReason(Reason.PLAYER_ADD)
+        if (!players.contains(uuid)) {
+            players.add(uuid)
+            boats.add(
+                MagicalBoat(
+                    center.world!!.spawn(center.add(0.0, boats.size * 0.5, 0.0), Boat::class.java),
+                    boats
+                )
+            )
+            if (valid) endGameReason(Reason.PLAYER_ADD)
+        } else {
+            Bukkit.getOnlinePlayers().forEach {
+                println("NO SUCH PLAYER")
+            }
+        }
     }
 
     fun removePlayer(uuid: UUID) {

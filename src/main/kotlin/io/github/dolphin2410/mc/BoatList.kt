@@ -14,6 +14,13 @@ class BoatList: ArrayDeque<MagicalBoat>() {
     var mountable: Boolean = false
         private set
 
+    var movable: Boolean = false
+        private set
+
+    fun movable(): Boolean {
+        return movable
+    }
+
     fun popRemove() {
         pop().remove()
     }
@@ -32,6 +39,14 @@ class BoatList: ArrayDeque<MagicalBoat>() {
 
     fun disableMount() {
         mountable = false
+    }
+
+    fun enableMove() {
+        movable = true
+    }
+
+    fun disableMove() {
+        movable = false
     }
 
     fun onAllSit(observer: PropertyObserver<ArrayList<Pair<MagicalBoat, UUID>>>) {
